@@ -47,39 +47,39 @@ select billingcountry, AVG(Total)
 from Invoice
 group by billingcountry;
 --Q8
-select total ,strftime('%m',Invoicedate) As month, strftime('%Y',invoicedate) As year
+select sum(total) ,strftime('%m',Invoicedate) As month, strftime('%Y',invoicedate) As year
 from invoice 
 where year = "2010"
 group by month
 order by total desc
 --Q9
-select trackid, count(trackid)
-from invoiceline
-group by trackid;
+select InvoiceLine.trackid, track.Name , sum(quantity)
+from invoiceline join track on InvoiceLine.trackid = track.trackid
+group by InvoiceLinetrackid
+order by sum(quantity) desc
 --Q10
-Select invoiceline.invoicelineid, invoiceline.invoiceid, invoice.invoiceid, 
+Select invoiceline.invoicelineid, invoiceline.invoiceid,  
 invoiceline.quantity, invoice.BillingCountry, AVG(invoiceline.quantity) , strftime('%Y',invoicedate) As year
 From Invoice
 Join Invoiceline On invoice.invoiceid = Invoiceline.invoiceid
 Where year = "2011"
 Group by invoice.BillingCountry;
---Q11
-Select Quantity , mediatype, strftime('%Y',date) As year , mediatypeID, count(mediatypeID)
-From mydata
-join mediatype ON mydata.mediatype = mediatype.name
+--Q11 
+Select track.mediatypeID, MediaType.name, strftime('%Y',invoicedate) As year, sum(Quantity)
+From Invoice 
+join InvoiceLine ON InvoiceLine.invoiceid = Invoice.invoiceid
+join track ON InvoiceLine.trackid = track.trackid 
+join MediaType On MediaType.MediaTypeId = track.MediaTypeId
 Where year = "2010" 
-GROUP BY mediatypeID
-ORDER BY count(mediatypeID) desc
+GROUP BY track.mediatypeID
+ORDER BY sum(Quantity) desc
 limit 1;
 --Q12
-select artist, count( distinct genre), genre
-from mydata
-join genre on mydata.genre = genre.name
+select artist, count(*)
+from(select album.artistid, artist.name as artist, count(distinct album.artistid) as num
+from Track 
+join album On track.albumid = album.albumid
+join artist On album.ArtistId = artist.ArtistId
+group by album.artistid, genreid)
 group by artist
-order by count( distinct genre) desc;
---Q13
-select genre, sum(quantity), salesperson
-from mydata
-group by salesperson, genre
-order by sum(quantity) desc
-limit 3;
+order by count(*) asc
